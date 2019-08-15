@@ -136,7 +136,7 @@ else:
 
 # build the request
 search_endpoint_request = {
-				  "item_types": ["PSScene4Band"],
+				  "item_types": ["REOrthoTile","PSScene4Band", "PSScene3Band"],
 				  "filter": d
 				}
 
@@ -218,7 +218,12 @@ if len(df_selected) ==0:
 	quit()
 
 # estimate the total area of the order
-print('Estimated total order size is: ',   len(df_selected)  * area(d['config'][0]['config'])/(1000.**2), ' km2. Proceed?')
+try:
+    print('Estimated total order size is: ',   len(df_selected)  * area(d['config'][0]['config'])/(1000.**2), ' km2. Proceed?')
+except:
+    print('Can"t estimate order size. Proceed yes or no?')
+
+    
 text = input()
 if text not in ['y','Y','yes','Yes','YES']:
 	quit()
