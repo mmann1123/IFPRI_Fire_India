@@ -27,7 +27,11 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+OLD/
 Images_new/2016*
+*.ini
+Contracts/
+Images_mosaic/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
