@@ -155,7 +155,7 @@ def bai_rast_MS(inpath, outpath, r2r_dictionary):
     print('BAI band reflectance is '+ str(np.amin(brn_bai))+' '+str(np.median(brn_bai))+ '   '+ str(np.amax(brn_bai)) ) 
 
     #handle outliers
-    brn_bai[brn_bai>50000] = 50000
+    #brn_bai[brn_bai>50000] = 50000
     
     brn_meta.update({"driver": "GTiff",
                   "count":1,
@@ -286,6 +286,46 @@ def radiance_2_reflectance(tif_file,):
             coeffs[i] = float(value)
     return coeffs
 
+
+def write_reflectance(inpath, outpath, r2r_dictionary):
+
+    # get coefficients to convert radiance to reflectance 
+    coeffs = r2r_dictionary
+
+     # Load bands - note all PlanetScope 4-band images have band order BGRN
+    with rasterio.open(inpath) as src:
+        band_blue_radiance = src.read(1)
+    
+    with rasterio.open(inpath) as src:
+        band_green_radiance = src.read(2)
+    
+    with rasterio.open(inpath) as src:
+        band_red_radiance = src.read(3)
+    
+    with rasterio.open(inpath) as src:
+        band_nir_radiance = src.read(4)
+
+    # get the metadata of original GeoTIFF:
+    meta = src.meta
+
+    # rescale so not super large 
+    from rasterio import uint16
+    meta.update(dtype='uint16')
+    scale = 10000
+
+    # Multiply the current values in each band by the TOA reflectance coefficients
+    band_blue_reflectance = band_blue_radiance * coeffs[1] * scale 
+    band_green_reflectance = band_green_radiance * coeffs[2]* scale 
+    band_red_reflectance = band_red_radiance * coeffs[3]* scale 
+    band_nir_reflectance = band_nir_radiance * coeffs[4]* scale 
+
+
+    # Finally, write band calculations to a new GeoTIFF file
+    with rasterio.open(outpath, 'w', **meta) as dst:
+        dst.write_band(1, band_blue_reflectance.astype(uint16))
+        dst.write_band(2, band_green_reflectance.astype(uint16))
+        dst.write_band(3, band_red_reflectance.astype(uint16))
+        dst.write_band(4, band_nir_reflectance.astype(uint16))
 
  ## A funciton that reprojects the rasters to match blank raster properties 
 #def reproject_rast( in_image, out_path, example_raster):
